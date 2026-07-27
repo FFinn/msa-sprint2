@@ -1,0 +1,1 @@
+Warning [IST0133] (EnvoyFilter default/booking-feature-marker) Schema validation warning: EnvoyFilter exposes internal implementation details that may change at any time. Prefer other APIs if possible, and exercise extreme caution, especially around upgrades.

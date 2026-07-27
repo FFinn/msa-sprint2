@@ -1,0 +1,348 @@
+# Task 1 verification
+Date: 2026-07-27 12:23:13 +0500
+
+$ docker compose down --volumes --remove-orphans
+ Container hotelio-monolith Stopping
+ Container hotelio-monolith Stopped
+ Container hotelio-monolith Removing
+ Container hotelio-monolith Removed
+ Container hotelio-db Stopping
+ Container hotelio-db Stopped
+ Container hotelio-db Removing
+ Container hotelio-db Removed
+ Volume task1_monolith-db-data Removing
+ Volume task1_monolith-db-data Removed
+
+$ docker compose up -d --build
+ Image task1-monolith Building
+#1 [internal] load local bake definitions
+#1 reading from stdin 576B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 173B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/eclipse-temurin:17-jre-jammy
+#3 DONE 6.5s
+
+#4 resolving provenance for metadata file
+#4 DONE 0.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [1/3] FROM docker.io/library/eclipse-temurin:17-jre-jammy@sha256:475d8e96b4b2bfe08999e5e854755c773af1581acdf959a4545d88f0696a2339
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 50B done
+#7 DONE 0.0s
+
+#8 [2/3] WORKDIR /app
+#8 CACHED
+
+#9 [3/3] COPY hotelio-monolith-1.0.0.jar app.jar
+#9 CACHED
+
+#10 exporting to image
+#10 exporting layers done
+#10 writing image sha256:02a1c5c3a56d4d435863a086259506cf0d5565fb6557b99e70995aa1fa51c303 done
+#10 naming to docker.io/library/task1-monolith done
+#10 DONE 0.0s
+ Image task1-monolith Built
+ Volume task1_monolith-db-data Creating
+ Volume task1_monolith-db-data Created
+ Container hotelio-db Creating
+ Container hotelio-db Created
+ Container hotelio-monolith Creating
+ Container hotelio-monolith Created
+ Container hotelio-db Starting
+ Container hotelio-db Started
+ Container hotelio-db Waiting
+ Container hotelio-db Healthy
+ Container hotelio-monolith Starting
+ Container hotelio-monolith Started
+
+$ readiness probe: bounded retry for http://localhost:8084/api/bookings
+API ready on attempt 3/30
+
+$ docker compose exec -T monolith-db psql -U hotelio -d hotelio < ../../test/init-fixtures.sql
+DELETE 0
+DELETE 0
+DELETE 0
+DELETE 0
+DELETE 0
+INSERT 0 4
+INSERT 0 3
+INSERT 0 12
+INSERT 0 3
+INSERT 0 2
+
+$ curl -sSf -X POST http://localhost:8084/api/bookings?userId=test-user-3&hotelId=test-hotel-1
+{"id":3,"userId":"test-user-3","hotelId":"test-hotel-1","promoCode":null,"discountPercent":0.0,"price":80.0,"createdAt":"2026-07-27T07:23:30.978546626Z"}
+$ curl -sSf http://localhost:8084/api/bookings
+[{"id":1,"userId":"test-user-2","hotelId":"test-hotel-1","promoCode":"TESTCODE1","discountPercent":10.0,"price":90.0,"createdAt":"2026-07-27T07:23:30.907294Z"},{"id":2,"userId":"test-user-3","hotelId":"test-hotel-1","promoCode":null,"discountPercent":0.0,"price":80.0,"createdAt":"2026-07-27T07:23:30.907294Z"},{"id":3,"userId":"test-user-3","hotelId":"test-hotel-1","promoCode":null,"discountPercent":0.0,"price":80.0,"createdAt":"2026-07-27T07:23:30.978547Z"}]
+$ docker build -t hotelio-tester ../../test
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 392B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/debian:bullseye-slim
+#2 DONE 6.4s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/6] FROM docker.io/library/debian:bullseye-slim@sha256:cba95a21c96c1f5fc2470081829363eed57706634f7dc26e8c6712934303d57a
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 103B done
+#5 DONE 0.0s
+
+#6 [3/6] RUN apt-get update && apt-get install -y     curl     postgresql-client     bash     && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [5/6] COPY init-fixtures.sql regress.sh ./
+#7 CACHED
+
+#8 [4/6] COPY wait-for-it.sh /usr/local/bin/wait-for-it
+#8 CACHED
+
+#9 [2/6] WORKDIR /app
+#9 CACHED
+
+#10 [6/6] RUN chmod +x /usr/local/bin/wait-for-it regress.sh
+#10 CACHED
+
+#11 exporting to image
+#11 exporting layers done
+#11 writing image sha256:fd0eb24dc0af4fdf9e5e5a338f0e1d4575b12cd869ff28ca97b06ce814a3abc5 done
+#11 naming to docker.io/library/hotelio-tester done
+#11 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/m1ez9ntt3xsn379yz3lo6zslp
+
+$ docker run --rm --network hotelio-net -e DB_HOST=hotelio-db -e DB_PORT=5432 -e DB_NAME=hotelio -e DB_USER=hotelio -e DB_PASSWORD=hotelio -e API_URL=http://hotelio-monolith:8080 hotelio-tester
+🏁 Регрессионный тест до миграции Hotelio
+🧪 Проверка подключения к БД...
+🧪 Загрузка фикстур...
+DELETE 4
+DELETE 3
+DELETE 12
+DELETE 3
+DELETE 3
+INSERT 0 4
+INSERT 0 3
+INSERT 0 12
+INSERT 0 3
+INSERT 0 2
+🧪 Выполнение HTTP-тестов...
+
+Тесты пользователей...
+✅ Получение test-user-1 по ID работает
+✅ Статус test-user-1: ACTIVE
+✅ test-user-1 в блэклисте
+✅ test-user-1 активен
+✅ test-user-1 не авторизован (в блэклисте)
+✅ test-user-3 — VIP-пользователь
+✅ test-user-2 авторизован
+
+Тесты отелей...
+✅ test-hotel-1 получен по ID
+✅ test-hotel-1 работает
+✅ test-hotel-3 не работает
+✅ test-hotel-2 полностью забронирован
+✅ Поиск отелей в Сеуле работает
+✅ Топ-отели в Сеуле загружены
+
+Тесты ревью...
+✅ Отзывы test-hotel-1 найдены
+✅ test-hotel-1 признан надёжным
+✅ test-hotel-3 НЕ признан надёжным (ожидаемо)
+
+Тесты промокодов...
+✅ Промокод TESTCODE1 найден
+✅ VIP-промо доступен VIP
+✅ VIP-промо недоступен обычному
+✅ Обычный промо доступен
+✅ Истекший промо недоступен
+✅ POST /validate промо прошёл
+
+Тесты бронирования...
+✅ Все бронирования получены
+✅ Бронирования test-user-2 найдены
+✅ Бронирование прошло (без промо)
+✅ Бронирование с промо прошло
+✅ Отклонено: неактивный пользователь
+✅ Отклонено: неоперационный отель
+✅ Отклонено: отель не прошёл проверку бронирования
+✅ Все HTTP-тесты пройдены!
+
+$ docker compose ps
+NAME               IMAGE            COMMAND                  SERVICE       CREATED          STATUS                    PORTS
+hotelio-db         postgres:15      "docker-entrypoint.s…"   monolith-db   18 seconds ago   Up 17 seconds (healthy)   5432/tcp
+hotelio-monolith   task1-monolith   "java -jar app.jar"      monolith      18 seconds ago   Up 11 seconds             0.0.0.0:8084->8080/tcp, [::]:8084->8080/tcp
+
+$ docker compose logs --no-color --tail=100
+hotelio-monolith  | 2026-07-27T07:23:27.968Z  INFO 1 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+hotelio-monolith  | 2026-07-27T07:23:27.974Z  INFO 1 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+hotelio-monolith  | 2026-07-27T07:23:27.974Z  INFO 1 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+hotelio-monolith  | 2026-07-27T07:23:27.997Z  INFO 1 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+hotelio-monolith  | 2026-07-27T07:23:27.998Z  INFO 1 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 718 ms
+hotelio-monolith  | 2026-07-27T07:23:28.080Z  INFO 1 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+hotelio-monolith  | 2026-07-27T07:23:28.107Z  INFO 1 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+hotelio-monolith  | 2026-07-27T07:23:28.129Z  INFO 1 --- [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+hotelio-monolith  | 2026-07-27T07:23:28.162Z  INFO 1 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+hotelio-monolith  | 2026-07-27T07:23:28.174Z  INFO 1 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+hotelio-monolith  | 2026-07-27T07:23:28.273Z  INFO 1 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@173511ff
+hotelio-monolith  | 2026-07-27T07:23:28.274Z  INFO 1 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+hotelio-monolith  | 2026-07-27T07:23:28.734Z  INFO 1 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+hotelio-monolith  | Hibernate: drop table if exists app_user cascade
+hotelio-monolith  | 2026-07-27T07:23:28.743Z  WARN 1 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+hotelio-monolith  | 2026-07-27T07:23:28.743Z  WARN 1 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "app_user" does not exist, skipping
+hotelio-monolith  | Hibernate: drop table if exists booking cascade
+hotelio-monolith  | 2026-07-27T07:23:28.743Z  WARN 1 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+hotelio-monolith  | 2026-07-27T07:23:28.743Z  WARN 1 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "booking" does not exist, skipping
+hotelio-monolith  | Hibernate: drop table if exists hotel cascade
+hotelio-monolith  | 2026-07-27T07:23:28.744Z  WARN 1 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+hotelio-monolith  | 2026-07-27T07:23:28.744Z  WARN 1 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "hotel" does not exist, skipping
+hotelio-monolith  | Hibernate: drop table if exists promo_code cascade
+hotelio-monolith  | 2026-07-27T07:23:28.744Z  WARN 1 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+hotelio-monolith  | 2026-07-27T07:23:28.744Z  WARN 1 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "promo_code" does not exist, skipping
+hotelio-monolith  | Hibernate: drop table if exists review cascade
+hotelio-monolith  | 2026-07-27T07:23:28.745Z  WARN 1 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+hotelio-monolith  | 2026-07-27T07:23:28.745Z  WARN 1 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "review" does not exist, skipping
+hotelio-monolith  | Hibernate: create table app_user (active boolean not null, blacklisted boolean not null, city varchar(255), email varchar(255), id varchar(255) not null, name varchar(255), status varchar(255), primary key (id))
+hotelio-monolith  | Hibernate: create table booking (discount_percent float(53), price float(53) not null, created_at timestamp(6) with time zone, id bigserial not null, hotel_id varchar(255), promo_code varchar(255), user_id varchar(255), primary key (id))
+hotelio-monolith  | Hibernate: create table hotel (fully_booked boolean not null, operational boolean not null, rating float(53) not null, description varchar(1000), city varchar(255), id varchar(255) not null, primary key (id))
+hotelio-monolith  | Hibernate: create table promo_code (discount float(53) not null, expired boolean not null, valid_until date, vip_only boolean not null, code varchar(255) not null, description varchar(255), primary key (code))
+hotelio-monolith  | Hibernate: create table review (created_at date, rating integer not null, text varchar(2000), hotel_id varchar(255), id varchar(255) not null, user_id varchar(255), primary key (id))
+hotelio-monolith  | 2026-07-27T07:23:28.763Z  INFO 1 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+hotelio-monolith  | 2026-07-27T07:23:28.967Z  WARN 1 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+hotelio-monolith  | 2026-07-27T07:23:29.175Z  INFO 1 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+hotelio-monolith  | 2026-07-27T07:23:29.182Z  INFO 1 --- [           main] c.hotelio.monolith.MonolithApplication   : Started MonolithApplication in 2.248 seconds (process running for 2.608)
+hotelio-monolith  | ➡️  BookingService beans:
+hotelio-monolith  |     - bookingService: class com.hotelio.monolith.service.BookingService
+hotelio-monolith  | 2026-07-27T07:23:30.697Z  INFO 1 --- [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+hotelio-monolith  | 2026-07-27T07:23:30.697Z  INFO 1 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+hotelio-monolith  | 2026-07-27T07:23:30.697Z  INFO 1 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+hotelio-monolith  | Hibernate: select b1_0.id,b1_0.created_at,b1_0.discount_percent,b1_0.hotel_id,b1_0.price,b1_0.promo_code,b1_0.user_id from booking b1_0
+hotelio-monolith  | 2026-07-27T07:23:30.939Z  INFO 1 --- [nio-8080-exec-3] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-3, hotelId=test-hotel-1, promoCode=null
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+hotelio-monolith  | Hibernate: select r1_0.id,r1_0.created_at,r1_0.hotel_id,r1_0.rating,r1_0.text,r1_0.user_id from review r1_0 where r1_0.hotel_id=?
+hotelio-monolith  | 2026-07-27T07:23:30.978Z  INFO 1 --- [nio-8080-exec-3] c.h.monolith.service.BookingService      : Final price calculated: base=80.0, discount=0.0, final=80.0
+hotelio-monolith  | Hibernate: insert into booking (created_at,discount_percent,hotel_id,price,promo_code,user_id) values (?,?,?,?,?,?)
+hotelio-monolith  | Hibernate: select b1_0.id,b1_0.created_at,b1_0.discount_percent,b1_0.hotel_id,b1_0.price,b1_0.promo_code,b1_0.user_id from booking b1_0
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.city=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.city=? order by h1_0.rating desc
+hotelio-monolith  | Hibernate: select r1_0.id,r1_0.created_at,r1_0.hotel_id,r1_0.rating,r1_0.text,r1_0.user_id from review r1_0 where r1_0.hotel_id=?
+hotelio-monolith  | Hibernate: select r1_0.id,r1_0.created_at,r1_0.hotel_id,r1_0.rating,r1_0.text,r1_0.user_id from review r1_0 where r1_0.hotel_id=?
+hotelio-monolith  | Hibernate: select r1_0.id,r1_0.created_at,r1_0.hotel_id,r1_0.rating,r1_0.text,r1_0.user_id from review r1_0 where r1_0.hotel_id=?
+hotelio-monolith  | Hibernate: select pc1_0.code,pc1_0.description,pc1_0.discount,pc1_0.expired,pc1_0.valid_until,pc1_0.vip_only from promo_code pc1_0 where pc1_0.code=?
+hotelio-monolith  | Hibernate: select pc1_0.code,pc1_0.description,pc1_0.discount,pc1_0.expired,pc1_0.valid_until,pc1_0.vip_only from promo_code pc1_0 where pc1_0.code=?
+hotelio-monolith  | Hibernate: select pc1_0.code,pc1_0.description,pc1_0.discount,pc1_0.expired,pc1_0.valid_until,pc1_0.vip_only from promo_code pc1_0 where pc1_0.code=?
+hotelio-monolith  | Hibernate: select pc1_0.code,pc1_0.description,pc1_0.discount,pc1_0.expired,pc1_0.valid_until,pc1_0.vip_only from promo_code pc1_0 where pc1_0.code=?
+hotelio-monolith  | Hibernate: select pc1_0.code,pc1_0.description,pc1_0.discount,pc1_0.expired,pc1_0.valid_until,pc1_0.vip_only from promo_code pc1_0 where pc1_0.code=?
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select pc1_0.code,pc1_0.description,pc1_0.discount,pc1_0.expired,pc1_0.valid_until,pc1_0.vip_only from promo_code pc1_0 where pc1_0.code=?
+hotelio-monolith  | Hibernate: select b1_0.id,b1_0.created_at,b1_0.discount_percent,b1_0.hotel_id,b1_0.price,b1_0.promo_code,b1_0.user_id from booking b1_0
+hotelio-monolith  | Hibernate: select b1_0.id,b1_0.created_at,b1_0.discount_percent,b1_0.hotel_id,b1_0.price,b1_0.promo_code,b1_0.user_id from booking b1_0 where b1_0.user_id=?
+hotelio-monolith  | 2026-07-27T07:23:38.181Z  INFO 1 --- [io-8080-exec-10] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-3, hotelId=test-hotel-1, promoCode=null
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+hotelio-monolith  | Hibernate: select r1_0.id,r1_0.created_at,r1_0.hotel_id,r1_0.rating,r1_0.text,r1_0.user_id from review r1_0 where r1_0.hotel_id=?
+hotelio-monolith  | 2026-07-27T07:23:38.187Z  INFO 1 --- [io-8080-exec-10] c.h.monolith.service.BookingService      : Final price calculated: base=80.0, discount=0.0, final=80.0
+hotelio-monolith  | Hibernate: insert into booking (created_at,discount_percent,hotel_id,price,promo_code,user_id) values (?,?,?,?,?,?)
+hotelio-monolith  | 2026-07-27T07:23:38.196Z  INFO 1 --- [nio-8080-exec-2] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-2, hotelId=test-hotel-1, promoCode=TESTCODE1
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+hotelio-monolith  | Hibernate: select r1_0.id,r1_0.created_at,r1_0.hotel_id,r1_0.rating,r1_0.text,r1_0.user_id from review r1_0 where r1_0.hotel_id=?
+hotelio-monolith  | Hibernate: select pc1_0.code,pc1_0.description,pc1_0.discount,pc1_0.expired,pc1_0.valid_until,pc1_0.vip_only from promo_code pc1_0 where pc1_0.code=?
+hotelio-monolith  | 2026-07-27T07:23:38.203Z  INFO 1 --- [nio-8080-exec-2] c.h.monolith.service.BookingService      : Final price calculated: base=100.0, discount=10.0, final=90.0
+hotelio-monolith  | Hibernate: insert into booking (created_at,discount_percent,hotel_id,price,promo_code,user_id) values (?,?,?,?,?,?)
+hotelio-monolith  | 2026-07-27T07:23:38.211Z  INFO 1 --- [nio-8080-exec-4] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-0, hotelId=test-hotel-1, promoCode=null
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | 2026-07-27T07:23:38.212Z  WARN 1 --- [nio-8080-exec-4] c.h.monolith.service.BookingService      : User test-user-0 is inactive
+hotelio-monolith  | 2026-07-27T07:23:38.224Z  INFO 1 --- [nio-8080-exec-6] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-2, hotelId=test-hotel-3, promoCode=null
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+hotelio-monolith  | 2026-07-27T07:23:38.227Z  WARN 1 --- [nio-8080-exec-6] c.h.monolith.service.BookingService      : Hotel test-hotel-3 is not operational
+hotelio-monolith  | 2026-07-27T07:23:38.239Z  INFO 1 --- [nio-8080-exec-8] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-2, hotelId=test-hotel-2, promoCode=null
+hotelio-monolith  | Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+hotelio-monolith  | Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+hotelio-monolith  | Hibernate: select r1_0.id,r1_0.created_at,r1_0.hotel_id,r1_0.rating,r1_0.text,r1_0.user_id from review r1_0 where r1_0.hotel_id=?
+hotelio-monolith  | 2026-07-27T07:23:38.247Z  WARN 1 --- [nio-8080-exec-8] c.h.monolith.service.BookingService      : Hotel test-hotel-2 is not trusted
+hotelio-db        | The files belonging to this database system will be owned by user "postgres".
+hotelio-db        | This user must also own the server process.
+hotelio-db        |
+hotelio-db        | The database cluster will be initialized with locale "en_US.utf8".
+hotelio-db        | The default database encoding has accordingly been set to "UTF8".
+hotelio-db        | The default text search configuration will be set to "english".
+hotelio-db        |
+hotelio-db        | Data page checksums are disabled.
+hotelio-db        |
+hotelio-db        | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+hotelio-db        | creating subdirectories ... ok
+hotelio-db        | selecting dynamic shared memory implementation ... posix
+hotelio-db        | selecting default max_connections ... 100
+hotelio-db        | selecting default shared_buffers ... 128MB
+hotelio-db        | selecting default time zone ... Etc/UTC
+hotelio-db        | creating configuration files ... ok
+hotelio-db        | running bootstrap script ... ok
+hotelio-db        | performing post-bootstrap initialization ... ok
+hotelio-db        | syncing data to disk ... ok
+hotelio-db        |
+hotelio-db        |
+hotelio-db        | Success. You can now start the database server using:
+hotelio-db        |
+hotelio-db        |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+hotelio-db        |
+hotelio-db        | initdb: warning: enabling "trust" authentication for local connections
+hotelio-db        | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+hotelio-db        | waiting for server to start....2026-07-27 07:23:21.509 UTC [48] LOG:  starting PostgreSQL 15.18 (Debian 15.18-1.pgdg13+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+hotelio-db        | 2026-07-27 07:23:21.510 UTC [48] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+hotelio-db        | 2026-07-27 07:23:21.512 UTC [51] LOG:  database system was shut down at 2026-07-27 07:23:21 UTC
+hotelio-db        | 2026-07-27 07:23:21.515 UTC [48] LOG:  database system is ready to accept connections
+hotelio-db        |  done
+hotelio-db        | server started
+hotelio-db        | CREATE DATABASE
+hotelio-db        |
+hotelio-db        |
+hotelio-db        | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+hotelio-db        |
+hotelio-db        | waiting for server to shut down....2026-07-27 07:23:21.662 UTC [48] LOG:  received fast shutdown request
+hotelio-db        | 2026-07-27 07:23:21.663 UTC [48] LOG:  aborting any active transactions
+hotelio-db        | 2026-07-27 07:23:21.664 UTC [48] LOG:  background worker "logical replication launcher" (PID 54) exited with exit code 1
+hotelio-db        | 2026-07-27 07:23:21.664 UTC [49] LOG:  shutting down
+hotelio-db        | 2026-07-27 07:23:21.665 UTC [49] LOG:  checkpoint starting: shutdown immediate
+hotelio-db        | 2026-07-27 07:23:21.693 UTC [49] LOG:  checkpoint complete: wrote 922 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.007 s, sync=0.020 s, total=0.029 s; sync files=301, longest=0.008 s, average=0.001 s; distance=4239 kB, estimate=4239 kB
+hotelio-db        | 2026-07-27 07:23:21.695 UTC [48] LOG:  database system is shut down
+hotelio-db        |  done
+hotelio-db        | server stopped
+hotelio-db        |
+hotelio-db        | PostgreSQL init process complete; ready for start up.
+hotelio-db        |
+hotelio-db        | 2026-07-27 07:23:21.783 UTC [1] LOG:  starting PostgreSQL 15.18 (Debian 15.18-1.pgdg13+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+hotelio-db        | 2026-07-27 07:23:21.783 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+hotelio-db        | 2026-07-27 07:23:21.783 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+hotelio-db        | 2026-07-27 07:23:21.785 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+hotelio-db        | 2026-07-27 07:23:21.788 UTC [64] LOG:  database system was shut down at 2026-07-27 07:23:21 UTC
+hotelio-db        | 2026-07-27 07:23:21.791 UTC [1] LOG:  database system is ready to accept connections

@@ -1,0 +1,25 @@
+        |\
+        | \
+        |  \
+        |   \
+      /||    \
+     / ||     \
+    /  ||      \
+   /   ||       \
+  /    ||        \
+ /     ||         \
+/______||__________\
+____________________
+  \__       _____/
+     \_____/
+
+
+- Processing resources for Istio core.
+✔ Istio core installed ⛵️
+- Processing resources for Istiod.
+✔ Istiod installed 🧠
+- Processing resources for Egress gateways, Ingress gateways.
+✔ Egress gateways installed 🛫
+✔ Ingress gateways installed 🛬
+- Pruning removed resources
+✔ Installation complete

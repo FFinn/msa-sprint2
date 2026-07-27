@@ -1,0 +1,82 @@
+# Task 2 collect results
+Date: 2026-07-27 13:42:22 +0500
+ready: monolith REST facade (1/40)
+ready: grpc booking-service (1/40)
+
+$ docker compose ps
+NAME                              IMAGE                             COMMAND                  SERVICE                   CREATED          STATUS                    PORTS
+hotelio-booking-db                postgres:15                       "docker-entrypoint.s…"   booking-db                14 minutes ago   Up 14 minutes (healthy)   5432/tcp
+hotelio-booking-history-db        postgres:15                       "docker-entrypoint.s…"   booking-history-db        14 minutes ago   Up 14 minutes (healthy)   5432/tcp
+hotelio-booking-history-service   task2-booking-history-service     "python consumer.py"     booking-history-service   14 minutes ago   Up 13 minutes
+hotelio-booking-service           task2-booking-service             "python server.py"       booking-service           14 minutes ago   Up 13 minutes (healthy)   0.0.0.0:9090->9090/tcp, [::]:9090->9090/tcp
+hotelio-db                        postgres:15                       "docker-entrypoint.s…"   monolith-db               14 minutes ago   Up 14 minutes (healthy)   5432/tcp
+hotelio-kafka                     confluentinc/cp-kafka:7.2.1       "/etc/confluent/dock…"   kafka                     14 minutes ago   Up 14 minutes             0.0.0.0:9092->9092/tcp, [::]:9092->9092/tcp
+hotelio-monolith                  task2-monolith                    "java -jar app.jar"      monolith                  14 minutes ago   Up 13 minutes             0.0.0.0:8084->8080/tcp, [::]:8084->8080/tcp
+hotelio-zookeeper                 confluentinc/cp-zookeeper:7.2.1   "/etc/confluent/dock…"   zookeeper                 14 minutes ago   Up 14 minutes             0.0.0.0:2181->2181/tcp, [::]:2181->2181/tcp
+
+$ ./results/regress.sh
+ready: monolith REST facade (1/30)
+ready: grpc booking-service (1/30)
+Resetting monolith-db fixtures
+DELETE 4
+DELETE 3
+DELETE 12
+DELETE 3
+DELETE 2
+INSERT 0 4
+INSERT 0 3
+INSERT 0 12
+INSERT 0 3
+INSERT 0 2
+Resetting booking-db fixtures
+TRUNCATE TABLE
+INSERT 0 2
+ setval
+--------
+      2
+(1 row)
+
+Clearing booking-history-db
+ready: booking_history table (1/30)
+TRUNCATE TABLE
+
+User checks...
+✅ GET /api/users/test-user-1
+✅ GET /api/users/test-user-1/status
+✅ GET /api/users/test-user-1/blacklisted
+✅ GET /api/users/test-user-3/vip
+✅ GET /api/users/test-user-2/authorized
+
+Hotel and review checks...
+✅ Hotel operational check
+✅ Hotel fully-booked check
+✅ Trusted hotel check
+✅ Untrusted hotel check
+
+Promo checks...
+✅ GET /api/promos/TESTCODE1
+✅ VIP promo valid for VIP
+✅ VIP promo rejected for non-VIP
+✅ POST /api/promos/validate
+
+Booking checks through REST facade...
+✅ GET /api/bookings?userId= returns migrated history
+✅ GET /api/bookings?userId=test-user-2
+✅ REST POST without promo goes through gRPC
+✅ REST POST with promo goes through gRPC
+
+Booking checks direct to gRPC...
+✅ gRPC ListBookings returns user history
+✅ gRPC rejects inactive user
+✅ gRPC rejects non-operational hotel
+✅ gRPC rejects fully-booked/untrusted hotel
+
+REST proxy rejection checks...
+✅ REST proxy rejects inactive user (current monolith proxy returns HTTP 500)
+✅ REST proxy rejects non-operational hotel (current monolith proxy returns HTTP 500)
+✅ REST proxy rejects fully-booked/untrusted hotel (current monolith proxy returns HTTP 500)
+ready: booking_history count=2 (1/30)
+✅ booking-db contains 4 rows after two successful creates
+✅ booking-history-db received 2 async records
+✅ Task 2 regression passed
+Artifacts written to /Users/alexandrvafin/IdeaProjects/msa-sprint2/tasks/task2/results

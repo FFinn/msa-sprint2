@@ -1,0 +1,7 @@
+ id |   user_id   |   hotel_id   | promo_code | discount_percent | price |          created_at
+----+-------------+--------------+------------+------------------+-------+-------------------------------
+  1 | test-user-2 | test-hotel-1 | TESTCODE1  |               10 |    90 | 2026-01-01 10:00:00+00
+  2 | test-user-3 | test-hotel-1 |            |                0 |    80 | 2026-01-02 10:00:00+00
+  3 | test-user-3 | test-hotel-1 |            |                0 |    80 | 2026-07-27 08:42:24.241494+00
+  4 | test-user-2 | test-hotel-1 | TESTCODE1  |               10 |    90 | 2026-07-27 08:42:24.294868+00
+(4 rows)

@@ -114,19 +114,19 @@ curl -sSf -X POST "${BASE}/api/bookings?userId=test-user-2&hotelId=test-hotel-1&
 
 # 5. Ошибка — неактивный пользователь
 code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${BASE}/api/bookings?userId=test-user-0&hotelId=test-hotel-1")
-if [[ "$code" == "500" ]]; then
+if [[ "$code" == "409" ]]; then
   pass "Отклонено: неактивный пользователь"
 else
   fail "Ошибка: сервер принял бронирование от неактивного пользователя (код $code)"
 fi
 
-# 6. Ошибка — отель не доверенный
-curl -s -o /dev/null -w "%{http_code}" -X POST "${BASE}/api/bookings?userId=test-user-2&hotelId=test-hotel-3" | grep -q '500' \
-  && pass "Отклонено: недоверенный отель" \
-  || fail "Ошибка: сервер принял бронирование от недоверенного отеля"
+# 6. Ошибка — отель не работает
+curl -s -o /dev/null -w "%{http_code}" -X POST "${BASE}/api/bookings?userId=test-user-2&hotelId=test-hotel-3" | grep -q '409' \
+  && pass "Отклонено: неоперационный отель" \
+  || fail "Ошибка: сервер принял бронирование для неоперационного отеля"
 
-# 7. Ошибка — отель полностью забронирован
-curl -s -o /dev/null -w "%{http_code}" -X POST "${BASE}/api/bookings?userId=test-user-2&hotelId=test-hotel-2" | grep -q '500' \
-  && pass "Отклонено: отель полностью забронирован" \
-  || fail "Ошибка: сервер принял бронирование в полностью занятом отеле"
+# 7. Ошибка — отель не прошёл проверку бронирования
+curl -s -o /dev/null -w "%{http_code}" -X POST "${BASE}/api/bookings?userId=test-user-2&hotelId=test-hotel-2" | grep -q '409' \
+  && pass "Отклонено: отель не прошёл проверку бронирования" \
+  || fail "Ошибка: сервер принял бронирование для отклонённого отеля"
 echo "✅ Все HTTP-тесты пройдены!"

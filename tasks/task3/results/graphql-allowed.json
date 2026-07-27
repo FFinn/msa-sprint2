@@ -1,0 +1,17 @@
+{
+  "data": {
+    "bookingsByUser": [
+      {
+        "id": "1",
+        "userId": "user1",
+        "hotelId": "h1",
+        "promoCode": "SUMMER",
+        "discountPercent": 20,
+        "hotel": {
+          "name": "Hotel One",
+          "city": "Moscow"
+        }
+      }
+    ]
+  }
+}

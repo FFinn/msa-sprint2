@@ -1,0 +1,9 @@
+NAME                              IMAGE                             COMMAND                  SERVICE                   CREATED          STATUS                    PORTS
+hotelio-booking-db                postgres:15                       "docker-entrypoint.s…"   booking-db                14 minutes ago   Up 14 minutes (healthy)   5432/tcp
+hotelio-booking-history-db        postgres:15                       "docker-entrypoint.s…"   booking-history-db        14 minutes ago   Up 14 minutes (healthy)   5432/tcp
+hotelio-booking-history-service   task2-booking-history-service     "python consumer.py"     booking-history-service   14 minutes ago   Up 14 minutes
+hotelio-booking-service           task2-booking-service             "python server.py"       booking-service           14 minutes ago   Up 14 minutes (healthy)   0.0.0.0:9090->9090/tcp, [::]:9090->9090/tcp
+hotelio-db                        postgres:15                       "docker-entrypoint.s…"   monolith-db               14 minutes ago   Up 14 minutes (healthy)   5432/tcp
+hotelio-kafka                     confluentinc/cp-kafka:7.2.1       "/etc/confluent/dock…"   kafka                     14 minutes ago   Up 14 minutes             0.0.0.0:9092->9092/tcp, [::]:9092->9092/tcp
+hotelio-monolith                  task2-monolith                    "java -jar app.jar"      monolith                  14 minutes ago   Up 14 minutes             0.0.0.0:8084->8080/tcp, [::]:8084->8080/tcp
+hotelio-zookeeper                 confluentinc/cp-zookeeper:7.2.1   "/etc/confluent/dock…"   zookeeper                 14 minutes ago   Up 14 minutes             0.0.0.0:2181->2181/tcp, [::]:2181->2181/tcp

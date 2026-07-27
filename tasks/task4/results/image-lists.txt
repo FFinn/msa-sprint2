@@ -1,0 +1,44 @@
+# docker image ls
+IMAGE                                                      ID             DISK USAGE   CONTENT SIZE   EXTRA
+aefpm8.2:latest                                            31d7fca66eeb       2.41GB             0B   U
+aenginx8.2:latest                                          974309c99844        187MB             0B   U
+booking-service:latest                                     821bccef871d       6.68MB             0B
+confluentinc/cp-kafka:7.2.1                                6714825cefc3        801MB             0B   U
+confluentinc/cp-zookeeper:7.2.1                            c289b1634998        801MB             0B   U
+docker-finhub_consumer_1:latest                            6e836f4a24aa       1.97GB             0B   U
+docker-finhub_consumer_2:latest                            92defd7966e1       1.97GB             0B   U
+docker-finhub_consumer_3:latest                            9f5415ba0ccd       1.97GB             0B   U
+docker-php1:latest                                         298e51f27a54       1.97GB             0B   U
+docker-php2:latest                                         f71a3e8eca6b       1.97GB             0B   U
+docker-php3:latest                                         31cdf8388a9a       1.97GB             0B   U
+docker-shell_client:latest                                 bf31f8d9611f       1.97GB             0B   U
+gcr.io/k8s-minikube/kicbase:v0.0.50                        f3db27eba481       1.35GB             0B   U
+gradle:8.5-jdk17                                           e6f2cbb2eda2        705MB             0B
+hotelio-tester:latest                                      fd0eb24dc0af       85.6MB             0B
+og-nexus.avtoexpress.org:5005/dunglas/mercure:v0.18.4      013d0f876f4b       77.5MB             0B   U
+og-nexus.avtoexpress.org:5005/mysql/mysql-server:8.0       423da140c8c0        507MB             0B   U
+og-nexus.avtoexpress.org:5005/nginx:alpine                 3622c15090bd       61.5MB             0B   U
+og-nexus.avtoexpress.org:5005/rabbitmq:3.7.28-management   7286e8b9e20c        171MB             0B   U
+plantuml/plantuml:latest                                   10bd61c491e5        314MB             0B
+postgres:15                                                4f4af9ef6cf6        467MB             0B   U
+task1-monolith:latest                                      02a1c5c3a56d        318MB             0B
+task2-booking-history-service:latest                       7a00bfcd1733        217MB             0B
+task2-booking-service:latest                               9e0ca27d2c5b        250MB             0B
+task2-monolith:latest                                      6d445e315076        318MB             0B
+task3-apollo-gateway:latest                                a8f7cd57e28b       1.25GB             0B   U
+task3-booking-service:latest                               d27777abbf77        250MB             0B   U
+task3-booking-subgraph:latest                              35be03672b95       1.16GB             0B   U
+task3-hotel-subgraph:latest                                e630cb6e9fb6       1.15GB             0B   U
+task3-monolith:latest                                      602ee42ef17c        318MB             0B   U
+
+# minikube image list
+registry.k8s.io/pause:3.10.1
+registry.k8s.io/kube-scheduler:v1.35.1
+registry.k8s.io/kube-proxy:v1.35.1
+registry.k8s.io/kube-controller-manager:v1.35.1
+registry.k8s.io/kube-apiserver:v1.35.1
+registry.k8s.io/etcd:3.6.6-0
+registry.k8s.io/coredns/coredns:v1.13.1
+gcr.io/k8s-minikube/storage-provisioner:v5
+docker.io/library/busybox:1.36
+docker.io/library/booking-service:latest

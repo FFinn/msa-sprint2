@@ -1,0 +1,193 @@
+$ go test -count=1 ./booking-service/...
+ok  	hotelio/booking-service	0.506s
+
+$ eval "$(minikube -p minikube docker-env)"
+$ docker build -t booking-service:latest ./booking-service
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 445B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for gcr.io/distroless/static-debian12:nonroot
+#2 DONE 0.6s
+
+#3 [internal] load metadata for docker.io/library/golang:1.22-alpine
+#3 DONE 1.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [stage-1 1/2] FROM gcr.io/distroless/static-debian12:nonroot@sha256:f5b485ea962d9bd1186b2f6b3a061191539b905b82ec395de78cbfae51f20e35
+#5 DONE 0.0s
+
+#6 [build 1/5] FROM docker.io/library/golang:1.22-alpine@sha256:1699c10032ca2582ec89a24a1312d986a3f094aed3d5c1147b19880afe40e052
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 54B done
+#7 DONE 0.0s
+
+#8 [build 5/5] RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w" -o /out/booking-service .
+#8 CACHED
+
+#9 [build 2/5] WORKDIR /src
+#9 CACHED
+
+#10 [build 3/5] COPY go.mod ./
+#10 CACHED
+
+#11 [build 4/5] COPY main.go ./
+#11 CACHED
+
+#12 [stage-1 2/2] COPY --from=build /out/booking-service /booking-service
+#12 CACHED
+
+#13 exporting to image
+#13 exporting layers done
+#13 writing image sha256:7571aa46688614b538ded26e07c84e7f71c59650906219ee756b970c676bdfb4 done
+#13 naming to docker.io/library/booking-service:latest done
+#13 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/default/default/kwajbt1e54fwt87a8f2pcgkgl
+
+$ /var/folders/w0/1j8tp6n15q1dszfxxys4y06h0000gn/T/tmp.xIzKfhHzLM/istio-1.30.3/bin/istioctl install --set profile=demo -y
+        |\
+        | \
+        |  \
+        |   \
+      /||    \
+     / ||     \
+    /  ||      \
+   /   ||       \
+  /    ||        \
+ /     ||         \
+/______||__________\
+____________________
+  \__       _____/
+     \_____/
+
+
+- Processing resources for Istio core.
+✔ Istio core installed ⛵️
+- Processing resources for Istiod.
+✔ Istiod installed 🧠
+- Processing resources for Egress gateways, Ingress gateways.
+✔ Ingress gateways installed 🛬
+✔ Egress gateways installed 🛫
+- Pruning removed resources
+✔ Installation complete
+$ kubectl label namespace default istio-injection=enabled --overwrite
+namespace/default not labeled
+
+$ kubectl apply -f kubernetes/service.yaml
+service/booking-service unchanged
+
+$ helm upgrade --install booking-service-v1 helm/booking-service --namespace default -f values-v1.yaml
+Release "booking-service-v1" has been upgraded. Happy Helming!
+NAME: booking-service-v1
+LAST DEPLOYED: Mon Jul 27 17:00:18 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 4
+DESCRIPTION: Upgrade complete
+TEST SUITE: None
+
+$ helm upgrade --install booking-service-v2 helm/booking-service --namespace default -f values-v2.yaml
+Release "booking-service-v2" has been upgraded. Happy Helming!
+NAME: booking-service-v2
+LAST DEPLOYED: Mon Jul 27 17:00:18 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 4
+DESCRIPTION: Upgrade complete
+TEST SUITE: None
+
+$ kubectl apply -f kubernetes/istio-client.yaml
+pod/istio-client unchanged
+
+$ kubectl apply -f istio/destination-rule.yaml
+destinationrule.networking.istio.io/booking-service unchanged
+
+$ kubectl apply -f istio/virtual-service.yaml
+virtualservice.networking.istio.io/booking-service unchanged
+
+$ kubectl apply -f istio/envoy-filter.yaml
+envoyfilter.networking.istio.io/booking-feature-marker unchanged
+
+$ kubectl wait --for=condition=Ready pod/istio-client -n default --timeout=120s
+pod/istio-client condition met
+
+$ kubectl rollout status deployment/booking-service-v1 -n default --timeout=180s
+deployment "booking-service-v1" successfully rolled out
+
+$ kubectl rollout status deployment/booking-service-v2 -n default --timeout=180s
+deployment "booking-service-v2" successfully rolled out
+
+$ ./check-istio.sh
+[INFO] Checking Istio control plane pods...
+NAME                                    READY   STATUS    RESTARTS   AGE
+istio-egressgateway-7c9dfb4748-n9jhf    1/1     Running   0          55m
+istio-ingressgateway-7bd9cc686b-qpmcs   1/1     Running   0          55m
+istiod-858f6bd4d7-cpc6j                 1/1     Running   0          56m
+[INFO] Checking namespace label...
+[INFO] Checking booking-service pods for istio-proxy...
+  booking-service-v1-8447cb6797-92ppr: containers=[booking-service] initContainers=[istio-init istio-proxy]
+  booking-service-v1-8447cb6797-z4nx9: containers=[booking-service] initContainers=[istio-init istio-proxy]
+  booking-service-v1-8447cb6797-zv4hk: containers=[booking-service] initContainers=[istio-init istio-proxy]
+  booking-service-v2-7cbcd6d564-js5lg: containers=[booking-service] initContainers=[istio-init istio-proxy]
+[INFO] Checking istio-client pod for istio-proxy...
+  istio-client: containers=[istio-client] initContainers=[istio-init istio-proxy]
+[PASS] Istio injection is active for booking-service and istio-client
+
+$ ./check-canary.sh
+[INFO] Checking canary distribution with 100 requests...
+[INFO] v1=94, v2=6
+[PASS] Canary distribution is within the expected range
+
+$ ./check-feature-flag.sh
+[INFO] Checking feature flag routing...
+HTTP/1.1 200 OK
+x-booking-version: v2
+date: Mon, 27 Jul 2026 12:00:30 GMT
+content-length: 21
+content-type: text/plain; charset=utf-8
+x-envoy-upstream-service-time: 1
+server: envoy
+Feature X is enabled!
+[PASS] Feature flag request is routed to v2 and returns enabled body
+
+$ ./check-fallback.sh
+[INFO] Verifying that /fallback-test fails on v1...
+HTTP/1.1 503 Service Unavailable
+x-booking-version: v1
+date: Mon, 27 Jul 2026 12:00:31 GMT
+content-length: 36
+content-type: text/plain; charset=utf-8
+x-envoy-upstream-service-time: 2
+server: envoy
+
+fallback test forced failure from v1
+[INFO] Verifying automatic fallback from v1 to v2 in a single client request...
+HTTP/1.1 200 OK
+content-type: text/plain; charset=utf-8
+x-booking-version: v2
+x-fallback-from: v1
+x-fallback-reason: upstream-503
+content-length: 26
+date: Mon, 27 Jul 2026 12:00:31 GMT
+server: envoy
+
+fallback test served by v2
+[PASS] Automatic fallback v1 -> v2 works for /fallback-test
+$ kubectl apply -f istio/envoy-filter.yaml
+envoyfilter.networking.istio.io/booking-feature-marker unchanged
+
+$ kubectl get envoyfilter booking-feature-marker -n default -o jsonpath="{.spec.priority}{\"\n\"}"
+10
+
+$ ./check-canary.sh
+[INFO] Checking canary distribution with 100 requests...
+[INFO] v1=94, v2=6
+[PASS] Canary distribution is within the expected range

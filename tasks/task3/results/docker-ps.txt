@@ -1,0 +1,10 @@
+NAME                       IMAGE                             COMMAND                  SERVICE            CREATED          STATUS                    PORTS
+task3-apollo-gateway-1     task3-apollo-gateway              "docker-entrypoint.s…"   apollo-gateway     30 minutes ago   Up 30 minutes (healthy)   0.0.0.0:4000->4000/tcp, [::]:4000->4000/tcp
+task3-booking-db-1         postgres:15                       "docker-entrypoint.s…"   booking-db         30 minutes ago   Up 30 minutes (healthy)   5432/tcp
+task3-booking-service-1    task3-booking-service             "python server.py"       booking-service    30 minutes ago   Up 30 minutes (healthy)   0.0.0.0:9090->9090/tcp, [::]:9090->9090/tcp
+task3-booking-subgraph-1   task3-booking-subgraph            "docker-entrypoint.s…"   booking-subgraph   10 seconds ago   Up 9 seconds (healthy)    0.0.0.0:4001->4001/tcp, [::]:4001->4001/tcp
+task3-hotel-subgraph-1     task3-hotel-subgraph              "docker-entrypoint.s…"   hotel-subgraph     30 minutes ago   Up 30 minutes (healthy)   0.0.0.0:4002->4002/tcp, [::]:4002->4002/tcp
+task3-kafka-1              confluentinc/cp-kafka:7.2.1       "/etc/confluent/dock…"   kafka              30 minutes ago   Up 30 minutes             9092/tcp
+task3-monolith-1           task3-monolith                    "java -jar app.jar"      monolith           30 minutes ago   Up 30 minutes (healthy)   0.0.0.0:8084->8080/tcp, [::]:8084->8080/tcp
+task3-monolith-db-1        postgres:15                       "docker-entrypoint.s…"   monolith-db        30 minutes ago   Up 30 minutes (healthy)   5432/tcp
+task3-zookeeper-1          confluentinc/cp-zookeeper:7.2.1   "/etc/confluent/dock…"   zookeeper          30 minutes ago   Up 30 minutes             2181/tcp, 2888/tcp, 3888/tcp

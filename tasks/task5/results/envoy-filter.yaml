@@ -1,0 +1,120 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: booking-feature-marker
+spec:
+  priority: 10
+  workloadSelector:
+    labels:
+      app: istio-client
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_OUTBOUND
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+              subFilter:
+                name: envoy.filters.http.router
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.lua
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+            inlineCode: |
+              local service_host = "booking-service.default.svc.cluster.local"
+              local v1_cluster = "outbound|80|v1|booking-service.default.svc.cluster.local"
+              local v2_cluster = "outbound|80|v2|booking-service.default.svc.cluster.local"
+
+              local function call_cluster(handle, cluster_name, path)
+                local ok, response_headers, response_body = pcall(
+                  handle.httpCall,
+                  handle,
+                  cluster_name,
+                  {
+                    [":method"] = "GET",
+                    [":path"] = path,
+                    [":authority"] = service_host,
+                    ["x-fallback-internal"] = "1"
+                  },
+                  "",
+                  5000
+                )
+
+                if not ok then
+                  return nil, nil, tostring(response_headers)
+                end
+
+                return response_headers, response_body, nil
+              end
+
+              local function respond_with_fallback(handle, reason)
+                local v2_headers, v2_body, v2_error = call_cluster(handle, v2_cluster, "/fallback-test")
+
+                if v2_error ~= nil then
+                  handle:respond(
+                    {
+                      [":status"] = "503",
+                      ["content-type"] = "text/plain; charset=utf-8",
+                      ["x-booking-version"] = "v2",
+                      ["x-fallback-from"] = "v1",
+                      ["x-fallback-reason"] = reason,
+                      ["x-fallback-error"] = "v2-call-failed"
+                    },
+                    "fallback to v2 failed: " .. v2_error
+                  )
+                  return
+                end
+
+                local v2_status = tonumber(v2_headers[":status"]) or 503
+                handle:respond(
+                  {
+                    [":status"] = tostring(v2_status),
+                    ["content-type"] = v2_headers["content-type"] or "text/plain; charset=utf-8",
+                    ["x-booking-version"] = v2_headers["x-booking-version"] or "v2",
+                    ["x-fallback-from"] = "v1",
+                    ["x-fallback-reason"] = reason
+                  },
+                  v2_body or ""
+                )
+              end
+
+              function envoy_on_request(handle)
+                local headers = handle:headers()
+                local path = headers:get(":path") or ""
+
+                headers:remove("x-istio-feature-route")
+
+                if headers:get("x-fallback-test") == "true" and headers:get("x-fallback-internal") ~= "1" and path == "/fallback-test" then
+                  local v1_headers, v1_body, v1_error = call_cluster(handle, v1_cluster, path)
+
+                  if v1_error ~= nil then
+                    respond_with_fallback(handle, "v1-call-failed")
+                    return
+                  end
+
+                  local v1_status = tonumber(v1_headers[":status"]) or 503
+                  if v1_status >= 500 then
+                    respond_with_fallback(handle, "upstream-" .. tostring(v1_status))
+                    return
+                  end
+
+                  handle:respond(
+                    {
+                      [":status"] = tostring(v1_status),
+                      ["content-type"] = v1_headers["content-type"] or "text/plain; charset=utf-8",
+                      ["x-booking-version"] = v1_headers["x-booking-version"] or "v1"
+                    },
+                    v1_body or ""
+                  )
+                  return
+                end
+
+                if headers:get("x-feature-enabled") == "true" then
+                  headers:add("x-istio-feature-route", "v2")
+                end
+
+                handle:clearRouteCache()
+              end
