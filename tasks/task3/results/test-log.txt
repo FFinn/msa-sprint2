@@ -1,0 +1,20 @@
+# Task 3 collect results
+Date: 2026-07-27 14:55:32 +0500
+Assumption: services were started from a clean state with 'docker compose down --volumes --remove-orphans'.
+ready: monolith REST (1/40)
+
+$ docker compose exec -T monolith-db psql -U hotelio -d hotelio < monolith-fixtures.sql
+DELETE 1
+INSERT 0 1
+✅ Applied monolith fixture for hotel h1
+ready: apollo-gateway (1/40)
+healthy: apollo-gateway (1/40)
+healthy: booking-subgraph (1/40)
+healthy: hotel-subgraph (1/40)
+healthy: booking-service (1/40)
+healthy: booking-db (1/40)
+healthy: monolith (1/40)
+✅ Allowed GraphQL query returned booking with federated hotel fields
+✅ Denied GraphQL query returned empty list because of ACL
+✅ Subgraph logs confirm success, ACL deny and real hotel REST resolve
+✅ Artifacts written to /Users/alexandrvafin/IdeaProjects/msa-sprint2/tasks/task3/results

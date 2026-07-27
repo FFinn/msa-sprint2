@@ -1,0 +1,11 @@
+booking-subgraph-1  | Enabling inline tracing for this subgraph. To disable, use ApolloServerPluginInlineTraceDisabled.
+booking-subgraph-1  | ✅ Booking subgraph ready at http://localhost:4001/
+booking-subgraph-1  | Возвращено бронирований: 1
+booking-subgraph-1  | Доступ к бронированиям user1 отклонён
+hotel-subgraph-1    | Enabling inline tracing for this subgraph. To disable, use ApolloServerPluginInlineTraceDisabled.
+hotel-subgraph-1    | ✅ Hotel subgraph ready at http://localhost:4002/
+hotel-subgraph-1    | Resolved hotel h1 from monolith REST
+hotel-subgraph-1    | Resolved hotel h1 from monolith REST
+hotel-subgraph-1    | Resolved hotel h1 from monolith REST
+hotel-subgraph-1    | Resolved hotel h1 from monolith REST
+apollo-gateway-1    | 🚀 Gateway ready at http://localhost:4000/

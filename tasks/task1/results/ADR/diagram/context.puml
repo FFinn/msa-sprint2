@@ -1,0 +1,12 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_LEFT_RIGHT()
+title Hotelio — контекст на старте миграции бронирований
+
+Person(user, "Пользователь", "Ищет отели, создаёт бронирования и просматривает свои бронирования")
+System(hotelio, "Hotelio / монолит", "Текущее приложение с REST API и общей бизнес-логикой")
+
+Rel(user, hotelio, "Использует REST API", "HTTPS")
+
+@enduml

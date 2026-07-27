@@ -1,0 +1,10 @@
+[INFO] Checking feature flag routing...
+HTTP/1.1 200 OK
+x-booking-version: v2
+date: Mon, 27 Jul 2026 12:00:53 GMT
+content-length: 21
+content-type: text/plain; charset=utf-8
+x-envoy-upstream-service-time: 1
+server: envoy
+Feature X is enabled!
+[PASS] Feature flag request is routed to v2 and returns enabled body

@@ -1,0 +1,20 @@
+replicaCount: 3
+
+image:
+  name: booking-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+ENABLE_FEATURE_X: "false"
+
+env:
+  - name: SERVICE_MODE
+    value: "production"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi

@@ -1,0 +1,6 @@
+HTTP/1.1 200 OK
+Date: Mon, 27 Jul 2026 10:45:16 GMT
+Content-Length: 4
+Content-Type: text/plain; charset=utf-8
+
+pong

@@ -1,0 +1,56 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: booking-service
+spec:
+  hosts:
+    - booking-service.default.svc.cluster.local
+  http:
+    - name: direct-v1-fallback-test
+      match:
+        - uri:
+            exact: /fallback-test
+          headers:
+            x-direct-version:
+              exact: v1
+      route:
+        - destination:
+            host: booking-service.default.svc.cluster.local
+            subset: v1
+          headers:
+            request:
+              remove:
+                - x-direct-version
+    - name: feature-flag-to-v2
+      match:
+        - headers:
+            x-istio-feature-route:
+              exact: v2
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: connect-failure,refused-stream,reset,gateway-error,5xx
+      timeout: 6s
+      route:
+        - destination:
+            host: booking-service.default.svc.cluster.local
+            subset: v2
+          headers:
+            request:
+              remove:
+                - x-istio-feature-route
+    - name: canary
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: connect-failure,refused-stream,reset,gateway-error,5xx
+      timeout: 6s
+      route:
+        - destination:
+            host: booking-service.default.svc.cluster.local
+            subset: v1
+          weight: 90
+        - destination:
+            host: booking-service.default.svc.cluster.local
+            subset: v2
+          weight: 10

@@ -1,0 +1,4 @@
+NAME                                    READY   STATUS    RESTARTS   AGE
+istio-egressgateway-7c9dfb4748-n9jhf    1/1     Running   0          54m
+istio-ingressgateway-7bd9cc686b-qpmcs   1/1     Running   0          54m
+istiod-858f6bd4d7-cpc6j                 1/1     Running   0          55m

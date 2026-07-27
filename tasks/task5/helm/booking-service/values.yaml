@@ -1,0 +1,23 @@
+version: v1
+
+replicaCount: 1
+
+image:
+  name: booking-service
+  tag: latest
+  pullPolicy: Never
+
+ENABLE_FEATURE_X: "false"
+SERVICE_VERSION: "v1"
+
+env:
+  - name: SERVICE_MODE
+    value: "mesh"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi

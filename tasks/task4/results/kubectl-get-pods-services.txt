@@ -1,0 +1,7 @@
+# kubectl get pods -n default -l app=booking-service
+NAME                              READY   STATUS    RESTARTS   AGE
+booking-service-6c78b4645-bq8sz   1/1     Running   0          27m
+
+# kubectl get svc -n default booking-service
+NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+booking-service   ClusterIP   10.96.191.48   <none>        80/TCP    27m

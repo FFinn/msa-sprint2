@@ -1,0 +1,30 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_TOP_DOWN()
+title Hotelio — целевая архитектура миграции бронирований\nПервый этап и следующий этап (не реализованы в задании 1)
+
+Person(user, "Пользователь", "Создаёт бронирование и получает список бронирований")
+
+System_Boundary(hotelio, "Hotelio") {
+    Container(monolith, "Монолит / REST-фасад", "Java Spring Boot", "Сохраняет внешний REST-контракт и маршрутизирует запросы на переходном этапе")
+    ContainerDb(monolithDb, "База монолита", "PostgreSQL", "Пользователи, отели, отзывы, промокоды и ещё не выделенные данные")
+
+    Container(booking, "booking-service", "Java, gRPC", "Будущий владелец бронирований после переключения")
+    ContainerDb(bookingDb, "bookingDb", "PostgreSQL", "Будущая отдельная промышленная БД бронирований")
+
+    ContainerQueue(kafka, "Kafka", "Kafka", "Следующий этап: асинхронная доставка события BookingCreated")
+    Container(history, "booking-history-service", "Java", "Следующий этап: отдельный потребитель событий бронирования")
+    ContainerDb(historyDb, "booking-history-db", "PostgreSQL", "Следующий этап: история/проекция бронирований")
+}
+
+Rel(user, monolith, "Использует REST API", "HTTPS GET/POST /api/bookings")
+Rel(monolith, booking, "После переключения проксирует POST и GET", "gRPC")
+Rel(booking, monolith, "Синхронно запрашивает проверки пользователей, отелей, промокодов и отзывов", "REST")
+Rel(monolith, monolithDb, "Продолжает обслуживать оставшиеся домены", "JPA")
+Rel(booking, bookingDb, "Хранит бронирования после переключения", "SQL")
+Rel(booking, kafka, "Следующий этап: публикует BookingCreated", "Kafka")
+Rel(kafka, history, "Следующий этап: передаёт событие")
+Rel(history, historyDb, "Следующий этап: записывает историю/проекцию", "SQL")
+
+@enduml

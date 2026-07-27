@@ -1,0 +1,45 @@
+unit   starting shell (unit)
+unit   $ cd booking-service
+unit   $ go test ./...
+unit   > ok  	hotelio/booking-service	(cached)
+unit   finished in 346 ms
+build  starting shell (build)
+build  $ docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" ./booking-service
+build  $ docker save -o "${IMAGE_ARCHIVE}" "${IMAGE_NAME}:${IMAGE_TAG}"
+build  finished in 7.4 s
+build  exported artifacts in 100 ms
+test   starting shell (test)
+test   $ cleanup() { # collapsed multi-line command
+test   > Loaded image: booking-service:latest
+test   > a5d4038c12e4cdd0fc5d54c636f4e355d23465e6bdc3a2d1e158aef3b1fd4801
+test   > 53ab1bc6e18afc3f47e19d97c412b629cb8179c01ac6654a7a2f60e2fec3cf12
+test   finished in 964 ms
+deploy starting shell (deploy)
+deploy $ docker load -i "${IMAGE_ARCHIVE}"
+deploy > Loaded image: booking-service:latest
+deploy $ minikube status >/dev/null 2>&1 || minikube start --driver=docker
+deploy $ minikube image load "${IMAGE_NAME}:${IMAGE_TAG}"
+deploy $ helm upgrade --install booking-service helm/booking-service --namespace "${NAMESPACE}" -f values-staging.yaml
+deploy > Release "booking-service" has been upgraded. Happy Helming!
+deploy > NAME: booking-service
+deploy > LAST DEPLOYED: Mon Jul 27 15:45:11 2026
+deploy > NAMESPACE: default
+deploy > STATUS: deployed
+deploy > REVISION: 4
+deploy > DESCRIPTION: Upgrade complete
+deploy > TEST SUITE: None
+deploy $ kubectl rollout status deployment/booking-service --namespace "${NAMESPACE}" --timeout=180s
+deploy > deployment "booking-service" successfully rolled out
+deploy finished in 8.55 s
+tag    starting shell (tag)
+tag    $ export RELEASE_TAG="booking-service-$(date -u +%Y%m%d%H%M%S)"
+tag    $ git tag "${RELEASE_TAG}"
+tag    $ echo "Created local tag ${RELEASE_TAG}"
+tag    > Created local tag booking-service-20260727104512
+tag    finished in 38 ms
+
+ PASS  unit
+ PASS  build
+ PASS  test
+ PASS  deploy
+ PASS  tag

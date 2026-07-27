@@ -1,0 +1,14 @@
+[INFO] Checking Istio control plane pods...
+NAME                                    READY   STATUS    RESTARTS   AGE
+istio-egressgateway-7c9dfb4748-n9jhf    1/1     Running   0          55m
+istio-ingressgateway-7bd9cc686b-qpmcs   1/1     Running   0          55m
+istiod-858f6bd4d7-cpc6j                 1/1     Running   0          57m
+[INFO] Checking namespace label...
+[INFO] Checking booking-service pods for istio-proxy...
+  booking-service-v1-8447cb6797-92ppr: containers=[booking-service] initContainers=[istio-init istio-proxy]
+  booking-service-v1-8447cb6797-z4nx9: containers=[booking-service] initContainers=[istio-init istio-proxy]
+  booking-service-v1-8447cb6797-zv4hk: containers=[booking-service] initContainers=[istio-init istio-proxy]
+  booking-service-v2-7cbcd6d564-js5lg: containers=[booking-service] initContainers=[istio-init istio-proxy]
+[INFO] Checking istio-client pod for istio-proxy...
+  istio-client: containers=[istio-client] initContainers=[istio-init istio-proxy]
+[PASS] Istio injection is active for booking-service and istio-client

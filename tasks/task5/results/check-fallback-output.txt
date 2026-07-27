@@ -1,0 +1,22 @@
+[INFO] Verifying that /fallback-test fails on v1...
+HTTP/1.1 503 Service Unavailable
+x-booking-version: v1
+date: Mon, 27 Jul 2026 12:00:54 GMT
+content-length: 36
+content-type: text/plain; charset=utf-8
+x-envoy-upstream-service-time: 3
+server: envoy
+
+fallback test forced failure from v1
+[INFO] Verifying automatic fallback from v1 to v2 in a single client request...
+HTTP/1.1 200 OK
+content-type: text/plain; charset=utf-8
+x-booking-version: v2
+x-fallback-from: v1
+x-fallback-reason: upstream-503
+content-length: 26
+date: Mon, 27 Jul 2026 12:00:54 GMT
+server: envoy
+
+fallback test served by v2
+[PASS] Automatic fallback v1 -> v2 works for /fallback-test

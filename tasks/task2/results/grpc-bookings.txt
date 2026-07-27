@@ -1,0 +1,38 @@
+[
+  {
+    "id": "1",
+    "userId": "test-user-2",
+    "hotelId": "test-hotel-1",
+    "promoCode": "TESTCODE1",
+    "discountPercent": 10.0,
+    "price": 90.0,
+    "createdAt": "2026-01-01T10:00:00Z"
+  },
+  {
+    "id": "2",
+    "userId": "test-user-3",
+    "hotelId": "test-hotel-1",
+    "promoCode": "",
+    "discountPercent": 0.0,
+    "price": 80.0,
+    "createdAt": "2026-01-02T10:00:00Z"
+  },
+  {
+    "id": "3",
+    "userId": "test-user-3",
+    "hotelId": "test-hotel-1",
+    "promoCode": "",
+    "discountPercent": 0.0,
+    "price": 80.0,
+    "createdAt": "2026-07-27T08:42:24.241494Z"
+  },
+  {
+    "id": "4",
+    "userId": "test-user-2",
+    "hotelId": "test-hotel-1",
+    "promoCode": "TESTCODE1",
+    "discountPercent": 10.0,
+    "price": 90.0,
+    "createdAt": "2026-07-27T08:42:24.294868Z"
+  }
+]

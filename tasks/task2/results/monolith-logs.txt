@@ -1,0 +1,3 @@
+hotelio-monolith  | ➡️  BookingService beans:
+hotelio-monolith  |     - bookingService: class com.hotelio.monolith.service.BookingService
+hotelio-monolith  |     - grpcBookingService: class com.hotelio.GrpcBookingService

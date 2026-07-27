@@ -1,5 +1,6 @@
 package com.hotelio.monolith.service;
 
+import com.hotelio.monolith.api.BookingRejectedException;
 import com.hotelio.monolith.entity.Booking;
 import com.hotelio.monolith.entity.PromoCode;
 import com.hotelio.monolith.repository.BookingRepository;
@@ -7,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,6 +59,7 @@ public class BookingService {
         booking.setPromoCode(promoCode);
         booking.setDiscountPercent(discount);
         booking.setPrice(finalPrice);
+        booking.setCreatedAt(Instant.now());
 
         return bookingRepository.save(booking);
     }
@@ -64,26 +67,26 @@ public class BookingService {
     private void validateUser(String userId) {
         if (!userService.isUserActive(userId)) {
             log.warn("User {} is inactive", userId);
-            throw new IllegalArgumentException("User is inactive");
+            throw new BookingRejectedException("User is inactive");
         }
         if (userService.isUserBlacklisted(userId)) {
             log.warn("User {} is blacklisted", userId);
-            throw new IllegalArgumentException("User is blacklisted");
+            throw new BookingRejectedException("User is blacklisted");
         }
     }
 
     private void validateHotel(String hotelId) {
         if (!hotelService.isHotelOperational(hotelId)) {
             log.warn("Hotel {} is not operational", hotelId);
-            throw new IllegalArgumentException("Hotel is not operational");
+            throw new BookingRejectedException("Hotel is not operational");
         }
         if (!reviewService.isTrustedHotel(hotelId)) {
             log.warn("Hotel {} is not trusted", hotelId);
-            throw new IllegalArgumentException("Hotel is not trusted based on reviews");
+            throw new BookingRejectedException("Hotel is not trusted based on reviews");
         }
         if (hotelService.isHotelFullyBooked(hotelId)) {
             log.warn("Hotel {} is fully booked", hotelId);
-            throw new IllegalArgumentException("Hotel is fully booked");
+            throw new BookingRejectedException("Hotel is fully booked");
         }
     }
 
